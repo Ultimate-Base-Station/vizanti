@@ -228,6 +228,7 @@ function connect(){
 			pointarray.push(tf.transformPose(msg.header.frame_id, tf.fixed_frame, point, new Quaternion()));
 		}
 
+
 		if(pointarray.length > 0){
 			data = {};
 			data.pose = pose;
