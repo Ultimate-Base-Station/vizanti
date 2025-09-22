@@ -247,6 +247,8 @@ function updateVisibility(){
 		const child = key;
 		const parent = tf.transforms[key].parent;
 
+		console.log(`TF link: ${parent} -> ${child}`);
+
 		if(!frame_visibility.hasOwnProperty(child)){
 			frame_visibility[child] = true;
 		}

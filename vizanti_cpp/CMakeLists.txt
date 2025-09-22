@@ -13,8 +13,16 @@ find_package(tf2_msgs REQUIRED)
 add_executable(tf_consolidator src/tf_consolidator.cpp)
 ament_target_dependencies(tf_consolidator rclcpp std_msgs tf2_msgs)
 
+add_executable(tf_static_consolidator src/tf_static_consolidator.cpp)
+ament_target_dependencies(tf_static_consolidator rclcpp std_msgs tf2_msgs)
+
 install(TARGETS
   tf_consolidator
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS
+  tf_static_consolidator
   DESTINATION lib/${PROJECT_NAME}
 )
 

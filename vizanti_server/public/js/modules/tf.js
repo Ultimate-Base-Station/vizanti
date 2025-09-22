@@ -98,13 +98,23 @@ export class TF {
 
 		this.tf_static_topic = new ROSLIB.Topic({
 			ros: rosbridge.ros,
-			name: '/tf_static',
+			name: '/vizanti/tf_static_consolidated',
+			// name: '/tf_static',
 			messageType: 'tf2_msgs/msg/TFMessage',
 			latch: true,
 			compression: rosbridge.compression
 		});
 
 		this.tf_static_listener = this.tf_static_topic.subscribe((msg) => {
+
+			if (!msg.transforms || msg.transforms.length === 0) {
+				console.warn("Received empty /tf_static message, ignoring.");
+				return;
+			}
+			// console.log("Static TFs:", msg.transforms.map(t => `${t.header.frame_id}->${t.child_frame_id}`));
+
+			console.log("LA LECHE")
+
 			this.updateTransforms(msg.transforms);
 		});
 
@@ -120,6 +130,7 @@ export class TF {
 			let deleted_anything = false;
 			for (const [frame_id, time_stamp] of Object.entries(this.frame_timestamps)) {
 				if(now - time_stamp > 1000 * 100){
+
 					this.frame_list.delete(frame_id);
 					delete this.transforms[frame_id];
 					delete this.absoluteTransforms[frame_id];
@@ -129,6 +140,7 @@ export class TF {
 			}
 
 			if(deleted_anything){
+				console.log("DELETING")
 				window.dispatchEvent(new Event("tf_changed"));
 			}
 		},5000)
