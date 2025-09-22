@@ -2,10 +2,10 @@
 	<div class="modal_inner noselect">
 		<h3>Add Widgets</h3>
 		
-		<br>
+		<div class="spacer"></div>
 
 		<div class="tab">
-			<button class="tablinks active_tab" id="add_set_type">By Type</button>
+			<button class="tablinks active-tab" id="add_set_type">By Type</button>
 			<button class="tablinks" id="add_set_topics">By Topic</button>
 		</div>
 
@@ -89,11 +89,11 @@
 
 			<hr>
 
-			<div class="widget_entry" onclick="addWidget('teleop','')" data-topic="geometry_msgs/msg/Twist">
+			<div class="widget_entry" onclick="addWidget('teleop','')" data-topic="geometry_msgs/msg/Twist,geometry_msgs/msg/TwistStamped">
 				<img src="assets/joystick.svg" alt="Teleop" class="card_icon">
 				<div class="card">
 					<b class="card_title">Teleop Joystick</b>
-					<p class="card_desc">geometry_msgs/Twist</p>
+					<p class="card_desc">Send velocity with [geometry_msgs/Twist] or [geometry_msgs/TwistStamped]</p>
 				</div>
 			</div>
 

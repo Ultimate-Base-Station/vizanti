@@ -27,10 +27,17 @@ const icon = document.getElementById("{uniqueID}_icon").getElementsByTagName('im
 const canvas = document.getElementById('{uniqueID}_canvas');
 const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
 
+const throttle = document.getElementById('{uniqueID}_throttle');
+throttle.addEventListener("input", (event) =>{
+	saveSettings();
+	connect();
+});
+
 //Settings
 if(settings.hasOwnProperty("{uniqueID}")){
 	const loaded_data  = settings["{uniqueID}"];
 	topic = loaded_data.topic;
+	throttle.value = loaded_data.throttle ?? 100;
 }else{
 	saveSettings();
 }
@@ -38,7 +45,8 @@ if(settings.hasOwnProperty("{uniqueID}")){
 
 function saveSettings(){
 	settings["{uniqueID}"] = {
-		topic: topic
+		topic: topic,
+		throttle: throttle.value
 	}
 	settings.save();
 }
@@ -105,6 +113,50 @@ async function drawMarkers(){
 		ctx.fillRect(-size/2, -size/2, size, size);
 	}
 
+	function drawCubeList(marker, size) {
+		ctx.scale(marker.scale.x, marker.scale.y);
+
+		const sizeHalf = size / 2;
+		const sizeDouble = size * 2;
+		const topMap = new Map();
+		
+		// Z-culling with numeric keys and index storage
+		marker.points.forEach((point, index) => {
+			const keyX = Math.round(point.x * 2);
+			const keyY = Math.round(point.y * 2);
+			const key = keyX * 100000 + keyY;
+			const existing = topMap.get(key);
+			if (!existing || point.z > marker.points[existing].z) {
+				topMap.set(key, index);
+			}
+		});
+		
+		const groups = new Map();
+		for (const index of topMap.values()) {
+			const color = rgbaToFillColor(marker.colors[index]);
+
+			if (!groups.has(color))
+				groups.set(color, []);
+
+			groups.get(color).push(marker.points[index]);
+		}
+
+		groups.forEach((points, color) => {
+			ctx.fillStyle = color;
+			ctx.beginPath();
+			points.forEach(point => {
+				const x = point.x * sizeDouble - sizeHalf;
+				const y = -point.y * sizeDouble - sizeHalf;
+				ctx.moveTo(x, y);
+				ctx.lineTo(x + size, y);
+				ctx.lineTo(x + size, y + size);
+				ctx.lineTo(x, y + size);
+				ctx.closePath();
+			});
+			ctx.fill();
+		});
+	}
+
 	function drawArrow(marker, size){
 		const height = parseInt(size*marker.scale.x);
 		const width = parseInt(size*0.2*marker.scale.y)+1;
@@ -130,7 +182,7 @@ async function drawMarkers(){
 		ctx.beginPath();
 		marker.points.forEach((point, index) => {
 			const x = point.x * size;
-			const y = point.y * size;
+			const y = -point.y * size;
 			if (index === 0) {
 				ctx.moveTo(x, y);
 			} else {
@@ -142,7 +194,7 @@ async function drawMarkers(){
 	}
 
 	function drawText(marker, size){
-		ctx.scale(0.1, -0.1);
+		ctx.scale(0.1, 0.1);
 
 		ctx.font = (marker.scale.z*10.0*size)+"px Monospace";
 		ctx.textAlign = "center";
@@ -183,12 +235,8 @@ async function drawMarkers(){
 			y: marker.transformed.translation.y
 		});
 
-		const yaw = marker.transformed.rotation.toEuler().h;
-
-		ctx.setTransform(1,0,0,-1, pos.x, pos.y); //sx,0,0,sy,px,py
-
-		if(marker.type != 9)
-			ctx.rotate(yaw);
+		const matrix = view.quaterionToProjectionMatrix(marker.transformed.rotation);
+		ctx.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], pos.x, pos.y); //sx,0,0,sy,px,py
 
 		switch(marker.type)
 		{
@@ -198,7 +246,7 @@ async function drawMarkers(){
 			case 3: drawCircle(marker, unit); break; //SPHERE=2 CYLINDER=3
 			case 4: drawLine(marker, unit); break; //LINE_STRIP=4
 			case 5: status.setWarn("LINE_LIST markers are not supported yet."); break; //LINE_LIST=5
-			case 6: status.setWarn("CUBE_LIST markers are not supported yet."); break; //CUBE_LIST=6
+			case 6:	drawCubeList(marker, unit); break; //CUBE_LIST=6
 			case 7: status.setWarn("SPHERE_LIST markers are not supported yet."); break; //SPHERE_LIST=7
 			case 8: status.setWarn("POINTS markers are not supported yet."); break; //POINTS=8
 			case 9: drawText(marker, unit); break;//TEXT_VIEW_FACING=9
@@ -224,7 +272,8 @@ function connect(){
 		ros : rosbridge.ros,
 		name : topic,
 		messageType : 'visualization_msgs/msg/MarkerArray',
-		compression: rosbridge.compression
+		compression: rosbridge.compression,
+		throttle_rate: parseInt(throttle.value)
 	});
 
 	status.setWarn("No data received.");

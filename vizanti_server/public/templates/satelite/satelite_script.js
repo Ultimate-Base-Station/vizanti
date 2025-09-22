@@ -70,6 +70,21 @@ tileServerString.addEventListener('input', function () {
 	saveSettings();
 });
 
+//dirty hack to show entire datalist when dropdown is clicked
+let tileServer_prev = '';
+tileServerString.addEventListener('focus', function () {
+    if (this.value.trim() !== '') {
+        tileServer_prev = this.value; // store for later
+        this.setAttribute('placeholder', this.value);
+    }
+    this.value = '';
+});
+tileServerString.addEventListener('blur', function () {
+    if (this.value.trim() === '') {
+        this.value = tileServer_prev;
+    }
+});
+
 const canvas = document.getElementById('{uniqueID}_canvas');
 const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
 ctx.clip = function(){};
@@ -83,6 +98,8 @@ if(settings.hasOwnProperty("{uniqueID}")){
 		copyright = "© OpenStreetMap";
 	else
 		copyright = "";
+
+	tileServerString.value = server_url;
 
 	smoothingCheckbox.checked = loaded_data.smoothing;
 	ignoreRotationCheckbox.checked = loaded_data.ignore_rotation ?? false;
@@ -148,10 +165,8 @@ function drawTile(screenSize, i, j, tempMeterSize, tempZoomLevel, maxtile){
 		y: transformed.translation.y,
 	});
 
-	const yaw = transformed.rotation.toEuler().h;
-
-	ctx.setTransform(1, 0, 0, 1, pos.x, pos.y);
-	ctx.rotate(-yaw);
+	const matrix = view.quaterionToProjectionMatrix(transformed.rotation);
+	ctx.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], pos.x, pos.y);
 	ctx.drawImage(tileImage, 0, 0, screenSize, screenSize);
 }
 
@@ -236,10 +251,10 @@ async function drawTiles(){
 		);
 
 		// Calculate the range of tiles to cover the screen
-		const minX = Math.min(...cornerTileCoords.map((coord) => coord.x)) - fix_data.tilePos.x;
-		const maxX = Math.max(...cornerTileCoords.map((coord) => coord.x)) - fix_data.tilePos.x;// + 1;
-		const minY = Math.min(...cornerTileCoords.map((coord) => coord.y)) - fix_data.tilePos.y;// - 1;
-		const maxY = Math.max(...cornerTileCoords.map((coord) => coord.y)) - fix_data.tilePos.y;// + 1;
+		const minX = Math.min(...cornerTileCoords.map((coord) => coord.x)) - fix_data.tilePos.x - 1;
+		const maxX = Math.max(...cornerTileCoords.map((coord) => coord.x)) - fix_data.tilePos.x + 1;
+		const minY = Math.min(...cornerTileCoords.map((coord) => coord.y)) - fix_data.tilePos.y - 1;
+		const maxY = Math.max(...cornerTileCoords.map((coord) => coord.y)) - fix_data.tilePos.y + 1;
 
 		//draw tiles in concentric circles, starting from the center of the screen
 		const matrixWidth = (maxX - minX)+2;
@@ -305,7 +320,8 @@ function connect(){
 	map_topic = new ROSLIB.Topic({
 		ros : rosbridge.ros,
 		name : topic,
-		messageType : 'sensor_msgs/msg/NavSatFix'
+		messageType : 'sensor_msgs/msg/NavSatFix',
+		throttle_rate: 33
 	});
 
 	status.setWarn("No data received.");

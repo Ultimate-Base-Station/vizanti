@@ -80,7 +80,6 @@ spriteSelector.addEventListener("change", (event) => {
 });
 
 //Settings
-
 if(settings.hasOwnProperty("{uniqueID}")){
 	const loaded_data  = settings["{uniqueID}"];
 	topic = loaded_data.topic;
@@ -118,7 +117,6 @@ function saveSettings(){
 }
 
 //Messaging
-
 function sendMessage(){
 
 	buttonContainer.classList.add("button-press-effect");
@@ -132,6 +130,7 @@ function sendMessage(){
 			ros: rosbridge.ros,
 			name: topic,
 			messageType: typedict[topic],
+			throttle_rate: 33
 		});
 
 		if(typedict[topic] == "std_msgs/msg/Bool"){
@@ -149,9 +148,7 @@ function sendMessage(){
 			serviceType: "std_srvs/srv/Empty"
 		});
 		const request = new ROSLIB.ServiceRequest({});
-		service.callService(request, (result) => {
-			console.log("Empty service called.");
-		});
+		service.callService(request, (result) => {});
 	}
 	else if(typedict[topic] == "std_srvs/srv/Trigger"){
 		const service = new ROSLIB.Service({
@@ -166,6 +163,12 @@ function sendMessage(){
 			}else{
 				status.setError(result.message);
 			}
+			
+			//flash result state
+			icon.src = icons[result.success];
+			setTimeout(()=>{
+				icon.src = icons["default"];
+			}, 500);
 		});
 	}
 	else if(typedict[topic] == "std_srvs/srv/SetBool"){
@@ -212,7 +215,8 @@ function connect(){
 		booltopic = new ROSLIB.Topic({
 			ros : rosbridge.ros,
 			name : topic,
-			messageType : "std_msgs/msg/Bool"
+			messageType : "std_msgs/msg/Bool",
+			throttle_rate: 33
 		});	
 		
 		listener = booltopic.subscribe((msg) => {
