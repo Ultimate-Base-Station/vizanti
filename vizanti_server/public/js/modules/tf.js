@@ -99,9 +99,7 @@ export class TF {
 		this.tf_static_topic = new ROSLIB.Topic({
 			ros: rosbridge.ros,
 			name: '/vizanti/tf_static_consolidated',
-			// name: '/tf_static',
 			messageType: 'tf2_msgs/msg/TFMessage',
-			latch: true,
 			compression: rosbridge.compression
 		});
 
@@ -116,6 +114,7 @@ export class TF {
 			console.log("LA LECHE")
 
 			this.updateTransforms(msg.transforms);
+			
 		});
 
 		this.event_timestamp = performance.now();
