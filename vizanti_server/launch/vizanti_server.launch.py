@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
     pkg_share_dir = get_package_share_directory('vizanti_server')
-    config_file = os.path.join(pkg_share_dir, "public/configs", "temi_config.json")
+    config_file = os.path.join(pkg_share_dir, "public/configs", "config.json")
 
     # Namespace argument
     namespace = launch.substitutions.LaunchConfiguration(
