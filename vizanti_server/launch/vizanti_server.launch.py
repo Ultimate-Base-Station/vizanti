@@ -1,28 +1,61 @@
+import os
+
 import launch
 import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
-import os
+
 
 def generate_launch_description():
 
     pkg_share_dir = get_package_share_directory('vizanti_server')
-    config_file = os.path.join(pkg_share_dir, "public/configs", "config.json")
+    config_file = os.path.join(pkg_share_dir, "public/configs", "temi_config.json")
 
-    #general params
-    base_url = launch.substitutions.LaunchConfiguration('base_url', default='') #e.g. /vizanti
+    # Namespace argument
+    namespace = launch.substitutions.LaunchConfiguration(
+        'namespace',
+        default=''
+    )
+
+    # General params
+    base_url = launch.substitutions.LaunchConfiguration('base_url', default='')
     port = launch.substitutions.LaunchConfiguration('port', default=5000)
     port_rosbridge = launch.substitutions.LaunchConfiguration('port_rosbridge', default=5001)
     flask_debug = launch.substitutions.LaunchConfiguration('flask_debug', default=True)
-    default_widget_config = launch.substitutions.LaunchConfiguration('default_widget_config', default=config_file) #e.g. ~/your_custom_config.json
+    default_widget_config = launch.substitutions.LaunchConfiguration(
+        'default_widget_config',
+        default=config_file
+    )
 
-    #rosbridge internal params
-    unregister_timeout = launch.substitutions.LaunchConfiguration('unregister_timeout', default='9999999.9')
-    retry_startup_delay = launch.substitutions.LaunchConfiguration('retry_startup_delay', default='10.0')
-    fragment_timeout = launch.substitutions.LaunchConfiguration('fragment_timeout', default='30')
-    delay_between_messages = launch.substitutions.LaunchConfiguration('delay_between_messages', default='0')
-    max_message_size = launch.substitutions.LaunchConfiguration('max_message_size', default='999999999')
+    # rosbridge internal params
+    unregister_timeout = launch.substitutions.LaunchConfiguration(
+        'unregister_timeout',
+        default='9999999.9'
+    )
+    retry_startup_delay = launch.substitutions.LaunchConfiguration(
+        'retry_startup_delay',
+        default='10.0'
+    )
+    fragment_timeout = launch.substitutions.LaunchConfiguration(
+        'fragment_timeout',
+        default='30'
+    )
+    delay_between_messages = launch.substitutions.LaunchConfiguration(
+        'delay_between_messages',
+        default='0.0'
+    )
+    max_message_size = launch.substitutions.LaunchConfiguration(
+        'max_message_size',
+        default='999999999'
+    )
+
+    declare_namespace_arg = launch.actions.DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description='Namespace for all Vizanti-related nodes, e.g. robot1'
+    )
 
     rosbridge_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='vizanti_rosbridge',
         package='rosbridge_server',
         executable='rosbridge_websocket',
@@ -41,12 +74,15 @@ def generate_launch_description():
     )
 
     rosapi_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='rosapi',
         package='rosapi',
-        executable='rosapi_node'
+        executable='rosapi_node',
+        output='screen'
     )
 
     flask_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='vizanti_flask_node',
         package='vizanti_server',
         executable='server.py',
@@ -63,6 +99,7 @@ def generate_launch_description():
     )
 
     tf_handler_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='vizanti_tf_handler_node',
         package='vizanti_cpp',
         executable='tf_consolidator',
@@ -70,6 +107,7 @@ def generate_launch_description():
     )
 
     tf_static_handler_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='vizanti_tf_static_handler_node',
         package='vizanti_cpp',
         executable='tf_static_consolidator',
@@ -77,6 +115,7 @@ def generate_launch_description():
     )
 
     service_handler_node = launch_ros.actions.Node(
+        namespace=namespace,
         name='vizanti_service_handler_node',
         package='vizanti_server',
         executable='service_handler.py',
@@ -84,6 +123,7 @@ def generate_launch_description():
     )
 
     return launch.LaunchDescription([
+        declare_namespace_arg,
         rosbridge_node,
         rosapi_node,
         flask_node,
@@ -91,6 +131,7 @@ def generate_launch_description():
         tf_handler_node,
         service_handler_node
     ])
+
 
 if __name__ == '__main__':
     launch.main()
