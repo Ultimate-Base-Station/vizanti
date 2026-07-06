@@ -1,0 +1,262 @@
+{
+  "navbar": [
+    {
+      "type": "settings",
+      "id": "settings_default"
+    },
+    {
+      "type": "rosbridge",
+      "id": "rosbridge_default"
+    },
+    {
+      "type": "grid",
+      "id": "grid_default"
+    },
+    {
+      "type": "initialpose",
+      "id": "initialpose_autoID_18",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "odom",
+      "id": "odom_autoID_25",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "posewithcovariancestamped",
+      "id": "posewithcovariancestamped_autoID_35",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "robotmodel",
+      "id": "robotmodel_autoID_54",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "robotmodel",
+      "id": "robotmodel_autoID_57",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "simplegoal",
+      "id": "simplegoal_autoID_59",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "tf",
+      "id": "tf_autoID_61",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "map",
+      "id": "map_autoID_67",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "simplegoal",
+      "id": "simplegoal_autoID_68",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "scan",
+      "id": "scan_autoID_76",
+      "container_id": "icon_container"
+    },
+    {
+      "type": "path",
+      "id": "path_autoID_79",
+      "container_id": "icon_container"
+    }
+  ],
+  "view": {
+    "center": {
+      "x": 13.026454179366247,
+      "y": -0.989681865926669
+    },
+    "scale": 41.13512373959331,
+    "tilt": -83.02829564782495,
+    "display_yaw_rad": 0.006711308631325963,
+    "tiltAngle": 0.8052236773727661,
+    "tiltAxis": "z",
+    "displayYawRad": 2.106295700511425
+  },
+  "grid_default": {
+    "size": 1,
+    "thickness": 1,
+    "colour": "#3e556a",
+    "colour_sub": "#294056",
+    "autoscale": "Off",
+    "subdivisions": 1
+  },
+  "settings_default": {
+    "fixed_frame": "ranger/map",
+    "background_color": "#273444"
+  },
+  "uid": 80,
+  "initialpose_autoID_18": {
+    "topic": "/ranger/initialpose"
+  },
+  "odom_autoID_25": {
+    "topic": "/ranger/dibami_track/tracked_odom (Odometry)",
+    "history": "2",
+    "color": "#c43b00",
+    "throttle": "50",
+    "draw_arrows": true,
+    "draw_path": true
+  },
+  "posewithcovariancestamped_autoID_35": {
+    "topic": "/ranger/goal_pose",
+    "scale": 1,
+    "typedict": {
+      "/ranger/goal_pose": "geometry_msgs/msg/PoseStamped",
+      "/temi/goal_pose": "geometry_msgs/msg/PoseStamped",
+      "/initialpose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/amcl_pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/set_pose_global": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/set_pose_local": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger_temi/amcl_pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/set_pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/goal_pose": "geometry_msgs/msg/PoseStamped",
+      "/person_pose": "geometry_msgs/msg/PoseStamped",
+      "/robot1_pose": "geometry_msgs/msg/PoseStamped",
+      "/robot2_pose": "geometry_msgs/msg/PoseStamped",
+      "/ranger/tracked_pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/goal_update": "geometry_msgs/msg/PoseStamped",
+      "/ranger/initialpose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/map_pose": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/temi/closest_person": "geometry_msgs/msg/PoseStamped",
+      "/ranger/amcl_pose2": "geometry_msgs/msg/PoseWithCovarianceStamped",
+      "/ranger/follow_goal_pose": "geometry_msgs/msg/PoseStamped"
+    },
+    "color": "#f74127",
+    "decay": "10000",
+    "throttle": "100",
+    "rendermode": "long_arrow"
+  },
+  "robotmodel_autoID_54": {
+    "frame": "temi/base_link",
+    "sprite": "temi",
+    "opacity": "1",
+    "length": "0.5",
+    "offset_x": "0",
+    "offset_y": "0",
+    "offset_yaw": "0"
+  },
+  "robotmodel_autoID_57": {
+    "frame": "ranger/base_link",
+    "sprite": "ranger",
+    "opacity": "1",
+    "length": "0.8",
+    "offset_x": "0.0",
+    "offset_y": "0.0",
+    "offset_yaw": "0.0"
+  },
+  "simplegoal_autoID_59": {
+    "topic": "/ranger/goal_pose",
+    "size": "10",
+    "offset_x": "4.918918918918918%",
+    "offset_y": "88.64468864468864%",
+    "button_sprite": "ranger"
+  },
+  "tf_autoID_61": {
+    "show_names": true,
+    "show_axes": true,
+    "show_lines": true,
+    "scale": 1,
+    "frame_visibility": {
+      "ranger/base_footprint": true,
+      "ranger/odom": true,
+      "ranger/bl_Link": false,
+      "ranger/base_link": false,
+      "ranger/br_Link": false,
+      "ranger/fl_Link": false,
+      "ranger/fr_Link": false,
+      "ranger/map": true,
+      "ranger/bottom_box_link": false,
+      "ranger/top_robot_link": false,
+      "ranger/camera_front_accel_frame": false,
+      "ranger/camera_front_link": false,
+      "ranger/camera_front_accel_optical_frame": false,
+      "ranger/camera_front_bottom_screw_frame": false,
+      "ranger/front_camera_support_link": false,
+      "ranger/camera_front_color_frame": false,
+      "ranger/camera_front_color_optical_frame": false,
+      "ranger/camera_front_depth_frame": false,
+      "ranger/camera_front_depth_optical_frame": false,
+      "ranger/camera_front_gyro_frame": false,
+      "ranger/camera_front_gyro_optical_frame": false,
+      "ranger/camera_front_imu_frame": false,
+      "ranger/camera_front_imu_optical_frame": false,
+      "ranger/camera_rear_accel_frame": false,
+      "ranger/camera_rear_link": false,
+      "ranger/camera_rear_accel_optical_frame": false,
+      "ranger/camera_rear_bottom_screw_frame": false,
+      "ranger/rear_camera_support_link": false,
+      "ranger/camera_rear_color_frame": false,
+      "ranger/camera_rear_color_optical_frame": false,
+      "ranger/camera_rear_depth_frame": false,
+      "ranger/camera_rear_depth_optical_frame": false,
+      "ranger/camera_rear_gyro_frame": false,
+      "ranger/camera_rear_gyro_optical_frame": false,
+      "ranger/camera_rear_imu_frame": false,
+      "ranger/camera_rear_imu_optical_frame": false,
+      "ranger/screw_lidar_camera_front_link": false,
+      "ranger/front_helios": false,
+      "ranger/front_lidar_support_link": false,
+      "ranger/front_rslidar": false,
+      "ranger/gps_antenna_link": false,
+      "ranger/top_box_link": false,
+      "ranger/imu_link": false,
+      "ranger/screw_lidar_camera_rear_link": false,
+      "ranger/rear_helios": false,
+      "ranger/rear_lidar_support_link": false,
+      "ranger/rear_rslidar": false,
+      "ranger/top_box_lidar_support_link": false,
+      "ranger/uwb_link": false,
+      "temi/base_link": true,
+      "temi/map": true,
+      "temi/camera_color_frame": false,
+      "temi/camera_link": false,
+      "temi/camera_color_optical_frame": false,
+      "temi/camera_depth_frame": false,
+      "temi/camera_depth_optical_frame": false,
+      "human": true,
+      "pose_0": true,
+      "pose_1": true,
+      "pose_2": true,
+      "pose_3": true,
+      "pose_4": true,
+      "pose_5": true,
+      "pose_6": true,
+      "pose_7": true,
+      "pose_8": true
+    }
+  },
+  "map_autoID_67": {
+    "topic": "/ranger/map",
+    "opacity": "0.7",
+    "colour_scheme": 0,
+    "throttle": "1000",
+    "use_timestamp": false
+  },
+  "simplegoal_autoID_68": {
+    "topic": "/temi/goal_pose",
+    "size": "10",
+    "offset_x": "4.054054054054054%",
+    "offset_y": "67.76556776556777%",
+    "button_sprite": "temi"
+  },
+  "scan_autoID_76": {
+    "topic": "/ranger/scan",
+    "opacity": "1",
+    "thickness": "0.02",
+    "color": "#ff0000",
+    "throttle": "500"
+  },
+  "path_autoID_79": {
+    "topic": "/ranger/plan",
+    "color": "#54db67",
+    "throttle": "100"
+  }
+}
