@@ -18,6 +18,7 @@
     <depend>geometry_msgs</depend>
     <depend>std_msgs</depend>
     <depend>vizanti_msgs</depend>
+    <depend>gp_sdf_interfaces</depend>
     <depend>python3-flask</depend>
     <depend>python3-waitress</depend>
     <depend>rosbridge_suite</depend>

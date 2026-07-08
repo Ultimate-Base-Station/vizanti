@@ -20,6 +20,7 @@ find_package(std_srvs REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(vizanti_msgs REQUIRED)
+find_package(gp_sdf_interfaces REQUIRED)
 find_package(rosbridge_suite REQUIRED)
 
 install(DIRECTORY

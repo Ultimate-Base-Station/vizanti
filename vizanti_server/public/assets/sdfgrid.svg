@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<linearGradient id="sdfGradient" x1="64" y1="256" x2="448" y2="256" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#b00000"/>
+			<stop offset="0.25" stop-color="#ff4d4d"/>
+			<stop offset="0.5" stop-color="#ffffff"/>
+			<stop offset="0.75" stop-color="#4dff4d"/>
+			<stop offset="1" stop-color="#008000"/>
+		</linearGradient>
+	</defs>
+	<rect x="64" y="64" width="384" height="384" rx="18" fill="#273444"/>
+	<g stroke="#1b2630" stroke-width="8">
+		<rect x="86" y="86" width="340" height="340" rx="10" fill="url(#sdfGradient)"/>
+		<path d="M171 86v340M256 86v340M341 86v340M86 171h340M86 256h340M86 341h340" opacity="0.55"/>
+	</g>
+	<path d="M130 286c50-76 110-76 160 0s110 76 160 0" fill="none" stroke="#273444" stroke-linecap="round" stroke-width="24" opacity="0.75"/>
+	<path d="M130 226c50 76 110 76 160 0s110-76 160 0" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="14" opacity="0.9"/>
+</svg>
