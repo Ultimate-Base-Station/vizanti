@@ -10,6 +10,8 @@ let Status = StatusModule.Status;
 
 let img_offset_x = "-999";
 let img_offset_y = "-999";
+let last_natural_width = 400;
+let last_natural_height = 250;
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 const vwToVh = vw => (vw * window.innerWidth) / window.innerHeight;
@@ -22,8 +24,8 @@ let status = new Status(
 
 //persistent loading, so we don't re-fetch on every update
 let stock_images = {};
-stock_images["loading"] = await imageToDataURL("assets/tile_loading.png");
-stock_images["error"] = await imageToDataURL("assets/tile_error.png");
+stock_images["loading"] = await imageToDataURL("assets/img_loading.png");
+stock_images["error"] = await imageToDataURL("assets/img_error.png");
 
 let image_topic = undefined;
 let listener = undefined;
@@ -48,6 +50,89 @@ widthSlider.addEventListener('input', () =>  {
 	widthValue.textContent = widthSlider.value;
 	saveSettings();
 });
+
+const text_resolution = document.getElementById("{uniqueID}_resolution");
+const text_datasize = document.getElementById("{uniqueID}_datasize");
+const text_rate = document.getElementById("{uniqueID}_rate");
+const text_bandwidth = document.getElementById("{uniqueID}_bandwidth");
+const text_compression = document.getElementById("{uniqueID}_compression");
+const text_type = document.getElementById("{uniqueID}_type");
+const text_frame = document.getElementById("{uniqueID}_frame");
+
+const COMPRESSION_TYPES = ["jpeg", "jpg", "png", "tiff", "webp", "rvl"];
+
+let arrival_times = [];
+let arrival_bytes = [];
+
+function parseFormat(format){
+	const lower = (format ?? "").toLowerCase();
+	const encoding = lower.split(";")[0].trim();
+	const compression = COMPRESSION_TYPES.find(type => lower.includes(type)) ?? "unknown";
+	const is_depth = lower.includes("compresseddepth") || encoding.startsWith("16uc1") || encoding.startsWith("32fc1") || encoding.startsWith("16uc") && lower.includes("depth");
+	return {encoding, compression, is_depth};
+}
+
+function base64ByteLength(data){
+	if(data === undefined || data.length == 0)
+		return 0;
+
+	let padding = 0;
+	if(data.endsWith("=="))
+		padding = 2;
+	else if(data.endsWith("="))
+		padding = 1;
+
+	return Math.floor(data.length * 3 / 4) - padding;
+}
+
+function formatBytes(bytes){
+	if(bytes >= 1024 * 1024)
+		return (bytes / (1024 * 1024)).toFixed(2)+" MB";
+
+	if(bytes >= 1024)
+		return (bytes / 1024).toFixed(1)+" kB";
+
+	return bytes+" B";
+}
+
+function resetLiveData(){
+	arrival_times = [];
+	arrival_bytes = [];
+
+	text_resolution.innerText = "Resolution: ?";
+	text_datasize.innerText = "Data size: ?";
+	text_rate.innerText = "Rate: ?";
+	text_bandwidth.innerText = "Bandwidth: ?";
+	text_compression.innerText = "Compression: ?";
+	text_type.innerText = "Type: ?";
+	text_frame.innerText = "Frame: ?";
+}
+
+function updateLiveData(msg, base64Data){
+	const info = parseFormat(msg.format);
+	const bytes = base64ByteLength(base64Data);
+	
+	arrival_times.push(performance.now());
+	arrival_bytes.push(bytes);
+
+	if(arrival_times.length > 20){
+		arrival_times.shift();
+		arrival_bytes.shift();
+	}
+
+	text_datasize.innerText = "Data size: "+formatBytes(bytes);
+	text_compression.innerText = "Compression: "+info.compression.toUpperCase();
+	text_type.innerText = "Type: "+(info.is_depth ? "Depth" : (info.encoding.startsWith("mono") || info.encoding == "8uc1" ? "Grayscale" : "Color"))+(info.encoding == "" ? "" : " ("+info.encoding+")");
+	text_frame.innerText = "Frame: "+(msg.header?.frame_id == "" ? "(empty)" : msg.header?.frame_id ?? "?");
+
+	if(arrival_times.length > 1){
+		const seconds = (arrival_times[arrival_times.length - 1] - arrival_times[0]) / 1000;
+		const rate = (arrival_times.length - 1) / seconds;
+		const mean_bytes = arrival_bytes.reduce((a, b) => a + b, 0) / arrival_bytes.length;
+		text_rate.innerText = "Rate: "+rate.toFixed(1)+" Hz";
+		text_bandwidth.innerText = "Bandwidth: "+formatBytes(mean_bytes * rate)+"/s";
+	}
+}
 
 const throttle = document.getElementById('{uniqueID}_throttle');
 throttle.addEventListener("input", (event) =>{
@@ -78,6 +163,9 @@ if(settings.hasOwnProperty("{uniqueID}")){
 	widthValue.innerText = loaded_data.width;
 	rotationbox.value = loaded_data.rotation;
 
+	last_natural_width = loaded_data.last_natural_width ?? 400;
+	last_natural_height = loaded_data.last_natural_height ?? 300;
+
 	canvas.style.transform = `translate(-50%, -50%) rotate(${loaded_data.rotation}deg)`;
 	displayImageOffset(img_offset_x, img_offset_y);
 }else{
@@ -93,13 +181,30 @@ function saveSettings(){
 		width: widthSlider.value,
 		img_offset_x: img_offset_x,
 		img_offset_y: img_offset_y,
-		rotation: rotationbox.value
+		rotation: rotationbox.value,
+		last_natural_width: last_natural_width,
+		last_natural_height: last_natural_height
 	}
 	settings.save();
 
 	canvas.style.opacity = opacitySlider.value;
 	canvas.style.transform = `translate(-50%, -50%) rotate(${rotationbox.value}deg)`;
 	displayImageOffset(img_offset_x, img_offset_y);
+}
+
+let isRWSFormat = null;
+function getBase64ImageData(msg) {
+	if (isRWSFormat === null) {
+		isRWSFormat = typeof msg.data !== 'string';
+		console.log(`Detected message format: ${isRWSFormat ? 'RWS' : 'rosbridge'}`);
+	}
+	
+	if (isRWSFormat) {
+		const msg_data = new Uint8Array(msg.data);
+		return msg_data.toBase64();
+	} else {
+		return msg.data;
+	}
 }
 
 //Topic
@@ -113,6 +218,8 @@ async function getImage(src) {
 }
 
 function connect(){
+
+	resetLiveData();
 
 	canvas.src = stock_images["loading"];
 	displayImageOffset(img_offset_x, img_offset_y);
@@ -132,20 +239,48 @@ function connect(){
 		ros : rosbridge.ros,
 		name : topic,
 		messageType : 'sensor_msgs/msg/CompressedImage',
-		throttle_rate: parseInt(throttle.value)
+		throttle_rate: parseInt(throttle.value),
+		queue_length: 1
 	});
 	
 	let received = false;
 	listener = image_topic.subscribe(async (msg) => {  
-		const src = 'data:image/jpeg;base64,' + msg.data
+
+		const mime = msg.format.includes("png") ? "image/png" : "image/jpeg";
+		let base64Data = getBase64ImageData(msg);
+
+		if (mime == "image/png") {
+			const pngIndex = base64Data.indexOf("iVBORw0KGgo");
+			if (pngIndex !== -1) {
+				base64Data =  base64Data.substring(pngIndex);
+			}
+		}
+
+		const src = `data:${mime};base64,${base64Data}`;
+
+		updateLiveData(msg, base64Data);
 
 		getImage(src)
-			.then(() => {
-				canvas.src = src;
-				if(!received){
-					displayImageOffset(img_offset_x, img_offset_y);
-					status.setOK();
-				}
+			.then((img) => {
+			    canvas.onload = () => {
+			        last_natural_width = canvas.naturalWidth;
+			        last_natural_height = canvas.naturalHeight;
+			        text_resolution.innerText = "Resolution: "+canvas.naturalWidth+" x "+canvas.naturalHeight;
+			        if(!received){
+
+						//lightweight hackery to show depth in a more usable way, we'd need to re-render it to 8bit to do it properly
+						if (msg.format && msg.format.includes("compressedDepth")) {
+							canvas.style.filter = "brightness(600%)";
+						} else {
+							canvas.style.filter = "none";
+						}
+
+			            displayImageOffset(img_offset_x, img_offset_y);
+			            status.setOK();
+			            received = true;
+			        }
+			    };
+			    canvas.src = src;
 			})
 			.catch((e) => {
 				canvas.src = stock_images["error"];
@@ -208,20 +343,34 @@ function displayImageOffset(x, y){
 	if(canvas.naturalWidth == 0)
 		return;
 
-	let img_width = widthSlider.value;
-	let img_height = (vwToVh(img_width) * canvas.naturalHeight)/canvas.naturalWidth;
+	const rotation = ((parseFloat(rotationbox.value) % 360) + 360) % 360;
+	const isSideways = (rotation === 90 || rotation === 270);
 
-	canvas.style.width = img_width+"vw";
-	canvas.style.height = img_height+"vh";
+	let img_width, img_height;
+	if(isSideways) {
+	    img_height = parseFloat(widthSlider.value);
+	    img_width = (img_height * last_natural_width) / (vwToVh(last_natural_height));
+	} else {
+	    img_width = parseFloat(widthSlider.value);
+	    img_height = (vwToVh(img_width) * last_natural_height) / last_natural_width;
+	}
 
-	let offset_x = clamp(x, img_width/2, 100 - img_width/2);
-	let offset_y = clamp(y, img_height/2, 100 - img_height/2);
+	const img_height_vw = img_height * window.innerHeight / window.innerWidth;
+	const visual_width  = isSideways ? img_height_vw : img_width;
+	const visual_height = isSideways ? img_width * window.innerWidth / window.innerHeight : img_height;
 
-	imgpreview.style.left = offset_x+"vw";
-	imgpreview.style.top = offset_y+"vh";
+	canvas.style.width  = img_width  + "vw";
+	canvas.style.height = img_height + "vh";
 
-	canvas.style.left = offset_x+"vw";
-	canvas.style.top = offset_y+"vh";
+	// Clamp position using the actual visual extents, not the pre-rotation ones
+	let offset_x = clamp(x, visual_width  / 2, 100 - visual_width  / 2);
+	let offset_y = clamp(y, visual_height / 2, 100 - visual_height / 2);
+
+	imgpreview.style.left = offset_x + "vw";
+	imgpreview.style.top  = offset_y + "vh";
+
+	canvas.style.left = offset_x + "vw";
+	canvas.style.top  = offset_y + "vh";
 }
 
 window.addEventListener('resize', ()=>{
@@ -232,7 +381,6 @@ function onMove(event) {
 	if (preview_active) {
 		event.preventDefault();
 		let currentX, currentY;
-
 		if (event.type === "touchmove") {
 			currentX = event.touches[0].clientX;
 			currentY = event.touches[0].clientY;
@@ -240,13 +388,8 @@ function onMove(event) {
 			currentX = event.clientX;
 			currentY = event.clientY;
 		}
-	
-		let img_width = widthSlider.value/2;
-		let img_height = (vwToVh(img_width) * canvas.naturalHeight)/canvas.naturalWidth;
-	
-		img_offset_x = clamp(currentX/window.innerWidth * 100, img_width, 100 - img_width);
-		img_offset_y = clamp(currentY/window.innerHeight * 100, img_height, 100 - img_height);
-
+		img_offset_x = currentX / window.innerWidth  * 100;
+		img_offset_y = currentY / window.innerHeight * 100;
 		saveSettings();
 	}
 }

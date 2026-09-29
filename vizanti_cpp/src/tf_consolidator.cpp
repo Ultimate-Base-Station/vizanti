@@ -7,6 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "std_msgs/msg/int32.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
 class TfConsolidator:public rclcpp::Node{
 	public:
@@ -43,14 +44,14 @@ class TfConsolidator:public rclcpp::Node{
 
 			tf_static_sub = create_subscription<tf2_msgs::msg::TFMessage>(
 				"/tf_static",
-				rclcpp::QoS(rclcpp::KeepLast(1))
+				rclcpp::QoS(rclcpp::KeepLast(20))
 					.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE)
 					.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL),
 				std::bind(&TfConsolidator::tf_static_callback, this, std::placeholders::_1)
 			);
 			tf_static_pub = create_publisher<tf2_msgs::msg::TFMessage>(
 				"/vizanti/tf_static_consolidated",
-				rclcpp::QoS(rclcpp::KeepLast(1))
+				rclcpp::QoS(rclcpp::KeepLast(20))
 					.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
 					.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE)
 			);
