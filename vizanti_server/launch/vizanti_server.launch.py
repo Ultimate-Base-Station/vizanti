@@ -1,6 +1,6 @@
 import os
 
-import launch
+import launch, launch.actions
 import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
 
@@ -11,10 +11,13 @@ def generate_launch_description():
     config_file = os.path.join(pkg_share_dir, "public/configs", "ranger_config.json")
 
     # Namespace argument
-    namespace = launch.substitutions.LaunchConfiguration(
+    declare_namespace_arg = launch.actions.DeclareLaunchArgument(
         'namespace',
-        default=''
+        default_value='',
+        description='Namespace for the Vizanti nodes'
     )
+
+    namespace = launch.substitutions.LaunchConfiguration('namespace')
 
     # General params
     base_url = launch.substitutions.LaunchConfiguration('base_url', default='')
@@ -29,10 +32,10 @@ def generate_launch_description():
     unregister_timeout = launch.substitutions.LaunchConfiguration('unregister_timeout', default='9999999.9')
     retry_startup_delay = launch.substitutions.LaunchConfiguration('retry_startup_delay', default='10.0')
     fragment_timeout = launch.substitutions.LaunchConfiguration('fragment_timeout', default='30')
-    delay_between_messages = launch.substitutions.LaunchConfiguration('delay_between_messages', default='0.0')
+    delay_between_messages = launch.substitutions.LaunchConfiguration('delay_between_messages', default='0')
     max_message_size = launch.substitutions.LaunchConfiguration('max_message_size', default='999999999')
-    websocket_ping_interval = launch.substitutions.LaunchConfiguration('websocket_ping_interval', default='4.0')
-    websocket_ping_timeout = launch.substitutions.LaunchConfiguration('websocket_ping_timeout', default='15.0')
+    websocket_ping_interval = launch.substitutions.LaunchConfiguration('websocket_ping_interval', default='4')
+    websocket_ping_timeout = launch.substitutions.LaunchConfiguration('websocket_ping_timeout', default='15')
 
     rosbridge_node = launch_ros.actions.Node(
         namespace=namespace,
