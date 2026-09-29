@@ -244,12 +244,19 @@ export class View {
 
 	addListeners(){
 		let view = document.getElementById("view_container");
+		const isInteractiveElement = (element) =>
+			hasClassInParentChain(element, 'icon') ||
+			hasClassInParentChain(element, 'inputelement');
 		
 		view.addEventListener('mousedown', this.handleDragStart.bind(this));
 		view.addEventListener('mousemove', this.handleDragMove.bind(this));
 		view.addEventListener('mouseup', this.handleDragEnd.bind(this));
 		
 		view.addEventListener('touchstart', (event) => {
+			// Cancelling touchstart suppresses the synthetic click generated for a tap.
+			// Leave floating controls alone so they remain usable on touchscreens.
+			if (isInteractiveElement(event.target)) return;
+
 			event.preventDefault()
 			if (event.touches.length === 2) {
 				if (!this.touch1 || !this.touch2) {
@@ -273,6 +280,8 @@ export class View {
 		}, { passive: false });
 
 		view.addEventListener('touchmove', (event) => {
+			if (isInteractiveElement(event.target)) return;
+
 			event.preventDefault();
 			if (event.touches.length === 2) {
 				this.handleZoom(event);
